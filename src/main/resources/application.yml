@@ -1,25 +1,27 @@
 spring:
   application:
-    name: ${APP_NAME}
-  datasource:
-    url: ${DATASOURCE_URL}
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
-    driver-class-name: oracle.jdbc.driver.OracleDriver
-    hikari:
-      maximum-pool-size: "10"
-      connection-timeout: "30000"
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.OracleDialect
-    hibernate:
-      ddl-auto: create
+    name: bff-ms
 server:
   port: ${PORT}
 logging:
   level:
     root: INFO
+    com:
+      netflix:
+        discovery: DEBUG
     org:
       hibernate: DEBUG
       springframework: DEBUG
+    feign: DEBUG
+azure:
+  function:
+    user:
+      prod:
+        url: ${AZ_FUNCTION_USER_URL}
+      dev:
+        url: ${AZ_FUNCTION_USER_DEV_URL}
+    role:
+      prod:
+        url: ${AZ_FUNCTION_ROLE_URL}
+      dev:
+        dev-url: ${AZ_FUNCTION_ROLE_DEV_URL}

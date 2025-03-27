@@ -1,0 +1,26 @@
+@azDevUrl=http://localhost:7071/api
+@azUrl=https://grupo3y.azurewebsites.net/api
+
+@bffDevUrl=http://localhost:8080/api
+
+###
+############################# Dev #############################
+###
+
+# Get All Users
+GET {{azDevUrl}}/users
+
+
+###
+############################# Prod #############################
+###
+
+# Get All Users
+GET {{azUrl}}/users
+
+###
+############################# Bff Dev #############################
+###
+
+# Get All Users
+GET {{bffDevUrl}}/users
