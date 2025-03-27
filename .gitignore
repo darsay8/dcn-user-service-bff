@@ -49,5 +49,6 @@ yarn.lock
 .DS_Store
 Thumbs.db
 
+req.http
 
 wallet/
