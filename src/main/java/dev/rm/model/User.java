@@ -1,9 +1,6 @@
 package dev.rm.model;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import javax.management.relation.Role;
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,14 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-    private Long userId;
+    private UUID userId;
     private String username;
     private String email;
-    private String passwordHash;
-    private String firstName;
-    private String lastName;
-    private boolean active;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private List<Role> roles;
+    private String password;
+    private Role role;
 }
