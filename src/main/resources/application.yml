@@ -17,6 +17,10 @@ azure:
   function:
     user:
       prod:
+        create: ${AZ_FUNCTION_USER_CREATE}
+        get: ${AZ_FUNCTION_USER_GET}
+        update: ${AZ_FUNCTION_USER_UPDATE}
+        delete: ${AZ_FUNCTION_USER_DELETE}
         url: ${AZ_FUNCTION_USER_URL}
       dev:
         url: ${AZ_FUNCTION_USER_DEV_URL}

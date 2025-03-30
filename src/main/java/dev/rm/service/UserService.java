@@ -2,31 +2,28 @@ package dev.rm.service;
 
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import dev.rm.model.User;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class UserService {
 
-    public UserService(WebClient webClient) {
-        this.webClient = webClient;
-    }
-
-    @Value("${azure.function.user.prod.url}")
-    private String azFunctionUserUrl;
-
-    private final WebClient webClient;
+    private final WebClient createUserWebClient;
+    private final WebClient updateUserWebClient;
+    private final WebClient deleteUserWebClient;
+    private final WebClient getUserWebClient;
 
     public Flux<User> getAllUsers() {
-        return webClient.get()
+        return getUserWebClient.get()
                 .uri("/getAllUsersFunction")
                 .retrieve()
                 .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
@@ -39,22 +36,23 @@ public class UserService {
     }
 
     public Mono<User> getUserById(UUID userId) {
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/getUserFunction").queryParam("userId", userId).build())
+        return getUserWebClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/getUserFunction").queryParam("userId", userId)
+                        .build())
                 .retrieve()
                 .onStatus(status -> status.is4xxClientError() || status.is5xxServerError(),
                         response -> response.bodyToMono(String.class)
                                 .flatMap(errorMessage -> {
                                     log.error("Error calling Azure Function: {}", errorMessage);
-                                    return Mono.error(new RuntimeException("Failed to fetch user: " + errorMessage));
+                                    return Mono.error(new RuntimeException("Failed to fetch user: " +
+                                            errorMessage));
                                 }))
                 .bodyToMono(User.class);
     }
 
     public Mono<User> createUser(User user) {
         log.debug("Sending request to Azure Function: {}", user);
-        return webClient.post()
-                .uri("/createUserFunction")
+        return createUserWebClient.post()
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(user)
                 .retrieve()
@@ -70,8 +68,9 @@ public class UserService {
     }
 
     public Mono<User> updateUser(UUID userId, User user) {
-        return webClient.put()
-                .uri(uriBuilder -> uriBuilder.path("/updateUserFunction").queryParam("userId", userId).build())
+        return updateUserWebClient.put()
+                .uri(uriBuilder -> uriBuilder.path("").queryParam("userId", userId)
+                        .build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(user)
                 .retrieve()
@@ -87,8 +86,8 @@ public class UserService {
     }
 
     public Mono<Void> deleteUser(UUID userId) {
-        return webClient.delete()
-                .uri(uriBuilder -> uriBuilder.path("/deleteUserFunction")
+        return deleteUserWebClient.delete()
+                .uri(uriBuilder -> uriBuilder.path("")
                         .queryParam("userId", userId)
                         .build())
                 .retrieve()
