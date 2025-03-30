@@ -1,7 +1,5 @@
 package dev.rm.controller;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -20,6 +18,8 @@ import dev.rm.model.User;
 import dev.rm.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
@@ -30,71 +30,49 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> getUsers() {
-        try {
-            List<User> users = userService.getAllUsers();
-            log.info("Fetched {} users", users.size());
-            if (users.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(users);
-            }
-            return ResponseEntity.ok(users);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.emptyList());
-        }
+    public Flux<User> getUsers() {
+        return userService.getAllUsers();
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<User> getUserById(@PathVariable UUID userId) {
-        try {
-            User user = userService.getUserById(userId);
-            log.info("Fetched user with ID: {}", userId);
-
-            if (user != null) {
-                return ResponseEntity.ok(user);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            System.err.println("Error retrieving user: " + e.getMessage());
-            return ResponseEntity.internalServerError().build();
-        }
+    public Mono<ResponseEntity<User>> getUserById(@PathVariable UUID userId) {
+        return userService.getUserById(userId)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        try {
-            log.info("Received create user request for username: {}", user.getUsername());
-            User createdUser = userService.createUser(user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-        } catch (Exception e) {
-            log.error("Error creating user: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public Mono<ResponseEntity<User>> createUser(@RequestBody User user) {
+        log.info("Received create user request for username: {}", user.getUsername());
+        log.info("Received create user: {}", user);
+        return userService.createUser(user)
+                .map(createdUser -> ResponseEntity.status(200).body(createdUser))
+                .onErrorResume(e -> {
+                    log.error("Error creating user: {}", e.getMessage(), e);
+                    return Mono.just(ResponseEntity.status(500).build());
+                });
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable UUID userId, @RequestBody User user) {
-        try {
-            User updatedUser = userService.updateUser(userId, user);
-            log.info("Updated user with ID: {}", userId);
-            return ResponseEntity.ok(updatedUser);
-        } catch (Exception e) {
-            log.error("Error updating user: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public Mono<ResponseEntity<User>> updateUser(@PathVariable UUID userId, @RequestBody User user) {
+        log.info("Received update user request for userId: {}", userId);
+        return userService.updateUser(userId, user)
+                .map(updatedUser -> ResponseEntity.ok(updatedUser))
+                .onErrorResume(e -> {
+                    log.error("Error updating user: {}", e.getMessage());
+                    return Mono.just(ResponseEntity.internalServerError().build());
+                })
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
-        try {
-            userService.deleteUser(userId);
-            log.info("Deleted user with ID: {}", userId);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            log.error("Error deleting user: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public Mono<ResponseEntity<Void>> deleteUser(@PathVariable UUID userId) {
+        return userService.deleteUser(userId)
+                .then(Mono.just(new ResponseEntity<Void>(HttpStatus.NO_CONTENT)))
+                .onErrorResume(e -> {
+                    log.error("Error deleting user: {}", e.getMessage());
+                    return Mono.just(new ResponseEntity<Void>(HttpStatus.INTERNAL_SERVER_ERROR));
+                });
     }
 
 }
