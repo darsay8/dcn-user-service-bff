@@ -16,18 +16,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import dev.rm.model.User;
 
 import dev.rm.service.UserService;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
-@AllArgsConstructor
 @RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public Flux<User> getUsers() {
@@ -46,10 +48,10 @@ public class UserController {
         log.info("Received create user request for username: {}", user.getUsername());
         log.info("Received create user: {}", user);
         return userService.createUser(user)
-                .map(createdUser -> ResponseEntity.status(200).body(createdUser))
+                .map(createdUser -> ResponseEntity.ok(createdUser))
                 .onErrorResume(e -> {
                     log.error("Error creating user: {}", e.getMessage(), e);
-                    return Mono.just(ResponseEntity.status(500).build());
+                    return Mono.just(ResponseEntity.internalServerError().build());
                 });
     }
 

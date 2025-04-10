@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Configuration
 public class WebClientConfig {
 
-    @Value("${azure.function.user.prod.url}")
+    @Value("${azure.function.user.dev.url}")
     private String baseUrl;
 
     @Value("${azure.function.user.prod.create}")
@@ -24,6 +24,15 @@ public class WebClientConfig {
 
     @Value("${azure.function.user.prod.get}")
     private String getUrl;
+
+    @Bean
+    public WebClient baseWebClient() {
+        return WebClient.builder()
+                .baseUrl(baseUrl)
+                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader("Accept", "application/json")
+                .build();
+    }
 
     @Bean
     public WebClient createUserWebClient() {
