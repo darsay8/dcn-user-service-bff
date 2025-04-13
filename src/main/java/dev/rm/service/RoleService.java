@@ -32,7 +32,7 @@ public class RoleService {
                 .bodyToFlux(Role.class);
     }
 
-    public Mono<Role> getRoleById(Long roleId) {
+    public Mono<Role> getRole(Long roleId) {
         return baseWebClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/getRoleFunction").queryParam("roleId", roleId)
                         .build())

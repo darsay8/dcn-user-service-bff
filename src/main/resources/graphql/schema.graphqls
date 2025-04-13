@@ -1,0 +1,46 @@
+type Role {
+  roleId: ID!
+  name: String!
+}
+
+type User {
+  userId: ID!
+  username: String!
+  email: String!
+  password: String!
+  role: Role!
+}
+
+type Query {
+  getUser(id: ID!): User
+  getAllUsers: [User]!
+  getRole(id: ID!): Role
+  getAllRoles: [Role]!
+}
+
+type Mutation {
+  saveUser(input: UserInput!): User!
+  updateUser(id: ID!, input: UserUpdateInput!): User!
+  deleteUser(id: ID!): Boolean!
+  saveRole(input: RoleInput!): Role!
+  updateRole(id: ID!, input: RoleInput!): Role!
+  deleteRole(id: ID!): Boolean!
+}
+
+input RoleInput {
+  name: String!
+}
+
+input UserInput {
+  username: String!
+  email: String!
+  password: String!
+  roleId: ID!
+}
+
+input UserUpdateInput {
+  username: String
+  email: String
+  password: String
+  roleId: ID
+}

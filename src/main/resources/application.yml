@@ -1,6 +1,10 @@
 spring:
   application:
     name: bff-ms
+  graphql:
+    graphiql:
+      enabled: true
+    path: /graphql
 server:
   port: ${PORT}
 logging:
@@ -15,17 +19,17 @@ logging:
     feign: DEBUG
 azure:
   function:
-    user:
-      prod:
-        create: ${AZ_FUNCTION_USER_CREATE}
-        get: ${AZ_FUNCTION_USER_GET}
-        update: ${AZ_FUNCTION_USER_UPDATE}
-        delete: ${AZ_FUNCTION_USER_DELETE}
-        url: ${AZ_FUNCTION_USER_URL}
-      dev:
-        url: ${AZ_FUNCTION_USER_DEV_URL}
-    role:
-      prod:
-        url: ${AZ_FUNCTION_ROLE_URL}
-      dev:
-        dev-url: ${AZ_FUNCTION_ROLE_DEV_URL}
+    rest:
+      user:
+        url:
+          create: ${AZ_FN_CREATE_USER}
+          get: ${AZ_FN_GET_USER}
+      role:
+        url:
+          get: ${AZ_FN_GET_ROLE}
+    graphql:
+      user:
+        delete: ${AZ_FN_DELETE_USER_GQL}
+      role:
+        create: ${AZ_FN_CREATE_ROLE_GQL}
+        update: ${AZ_FN_UPDATE_ROLE_GQL}

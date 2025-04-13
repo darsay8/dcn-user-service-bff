@@ -37,7 +37,7 @@ public class RolesController {
 
     @GetMapping("/{roleId}")
     public Mono<ResponseEntity<Role>> getRoleById(@PathVariable Long roleId) {
-        return roleService.getRoleById(roleId)
+        return roleService.getRole(roleId)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
