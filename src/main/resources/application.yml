@@ -19,17 +19,35 @@ logging:
     feign: DEBUG
 azure:
   function:
-    rest:
-      user:
-        url:
-          create: ${AZ_FN_CREATE_USER}
-          get: ${AZ_FN_GET_USER}
-      role:
-        url:
-          get: ${AZ_FN_GET_ROLE}
-    graphql:
-      user:
-        delete: ${AZ_FN_DELETE_USER_GQL}
-      role:
-        create: ${AZ_FN_CREATE_ROLE_GQL}
-        update: ${AZ_FN_UPDATE_ROLE_GQL}
+    user:
+      rest:
+        prod:
+          create: ${AZ_FUNCTION_USER_CREATE}
+          create-code: ${AZ_FN_CREATE_USER_KEY}
+          get: ${AZ_FUNCTION_USER_GET}
+          update: ${AZ_FUNCTION_USER_UPDATE}
+          delete: ${AZ_FUNCTION_USER_DELETE}
+          url: ${AZ_FUNCTION_URL}
+        dev:
+          url: ${AZ_FUNCTION_DEV_URL}
+      graphql:
+        prod:
+          url: ${AZ_FUNCTION_GRAPHQL_URL}
+        dev:
+          url: ${AZ_FUNCTION_DEV_GRAPHQL_URL}
+    role:
+      rest:
+        prod:
+          create: ${AZ_FUNCTION_ROLE_CREATE}
+          create-code: ${AZ_FN_CREATE_ROLE_KEY}
+          get: ${AZ_FUNCTION_ROLE_GET}
+          update: ${AZ_FUNCTION_ROLE_UPDATE}
+          delete: ${AZ_FUNCTION_ROLE_DELETE}
+          url: ${AZ_FUNCTION_URL}
+        dev:
+          url: ${AZ_FUNCTION_DEV_URL}
+      graphql:
+        prod:
+          url: ${AZ_FUNCTION_GRAPHQL_URL}
+        dev:
+          url: ${AZ_FUNCTION_DEV_GRAPHQL_URL}

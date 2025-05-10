@@ -78,10 +78,7 @@ public class UserGraphQLService {
                             userId
                             username
                             email
-                            role {
-                                roleId
-                                name
-                            }
+                            password
                         }
                     }
                 """, user.getUsername(), user.getEmail(), user.getPassword(),

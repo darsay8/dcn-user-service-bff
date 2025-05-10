@@ -8,7 +8,7 @@ type User {
   username: String!
   email: String!
   password: String!
-  role: Role!
+  role: Role
 }
 
 type Query {
@@ -35,7 +35,7 @@ input UserInput {
   username: String!
   email: String!
   password: String!
-  roleId: ID!
+  roleId: ID
 }
 
 input UserUpdateInput {
