@@ -1,8 +1,11 @@
 package dev.rm.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -44,14 +47,36 @@ public class UserController {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<User>> createUser(@RequestBody User user) {
+    public Mono<ResponseEntity<Object>> createUser(@RequestBody User user) {
         log.info("Received create user request for username: {}", user.getUsername());
         log.info("Received create user: {}", user);
         return userService.createUser(user)
-                .map(createdUser -> ResponseEntity.ok(createdUser))
+                .map(savedUser -> ResponseEntity
+                        .status(HttpStatus.CREATED)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body((Object) savedUser)) // Cast to Object to match return type
                 .onErrorResume(e -> {
                     log.error("Error creating user: {}", e.getMessage(), e);
-                    return Mono.just(ResponseEntity.internalServerError().build());
+
+                    String errorMessage = "Failed to create user.";
+
+                    if (e.getMessage().contains("ORA-00001")) {
+                        if (e.getMessage().contains("SYS_C0050205")) {
+                            errorMessage = "Error creating user: Username or email already exists.";
+                        } else {
+                            errorMessage = "Error creating user: Unique constraint violation.";
+                        }
+                    } else if (e.getMessage().contains("ORA-")) {
+                        errorMessage = "Error creating user: Database error occurred. Please contact support.";
+                    }
+
+                    Map<String, String> errorBody = new HashMap<>();
+                    errorBody.put("message", errorMessage);
+
+                    return Mono.just(ResponseEntity
+                            .status(HttpStatus.CONFLICT)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(errorBody));
                 });
     }
 

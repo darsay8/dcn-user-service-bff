@@ -1,6 +1,10 @@
 package dev.rm.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,11 +26,11 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @RestController
 @RequestMapping("/api/roles")
-public class RolesController {
+public class RoleController {
 
     private final RoleService roleService;
 
-    public RolesController(RoleService roleService) {
+    public RoleController(RoleService roleService) {
         this.roleService = roleService;
     }
 
@@ -45,12 +49,16 @@ public class RolesController {
     @PostMapping
     public Mono<ResponseEntity<Role>> createRole(@RequestBody Role role) {
         log.info("Received create role request for role name: {}", role.getName());
-        log.info("Received create role: {}", role);
         return roleService.createRole(role)
-                .map(createdRole -> ResponseEntity.ok(createdRole))
+                .map(savedRole -> ResponseEntity
+                        .status(HttpStatus.CREATED)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(savedRole))
                 .onErrorResume(e -> {
                     log.error("Error creating role: {}", e.getMessage(), e);
-                    return Mono.just(ResponseEntity.internalServerError().build());
+                    return Mono.just(ResponseEntity
+                            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .build());
                 });
     }
 
@@ -66,12 +74,21 @@ public class RolesController {
     }
 
     @DeleteMapping("/{roleId}")
-    public Mono<ResponseEntity<Void>> deleteRole(@PathVariable Long roleId) {
+    public Mono<ResponseEntity<Map<String, String>>> deleteRole(@PathVariable Long roleId) {
         return roleService.deleteRole(roleId)
-                .then(Mono.just(new ResponseEntity<Void>(HttpStatus.NO_CONTENT)))
+                .map(responseMap -> ResponseEntity
+                        .status(HttpStatus.OK)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(responseMap))
                 .onErrorResume(e -> {
                     log.error("Error deleting role: {}", e.getMessage(), e);
-                    return Mono.just(ResponseEntity.internalServerError().build());
+                    Map<String, String> errorResponse = new HashMap<>();
+                    errorResponse.put("message", e.getMessage());
+                    errorResponse.put("status", "ERROR");
+                    return Mono.just(ResponseEntity
+                            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(errorResponse));
                 });
     }
 

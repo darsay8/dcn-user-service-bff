@@ -3,9 +3,14 @@ package dev.rm.service;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dev.rm.model.User;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +39,9 @@ public class UserService {
         this.deleteUserWebClient = deleteUserWebClient;
         this.getUserWebClient = getUserWebClient;
     }
+
+    @Value("${azure.function.user.rest.prod.create-code}")
+    private String createUserCodeKey;
 
     public Flux<User> getAllUsers() {
         return baseWebClient.get()
@@ -65,7 +73,8 @@ public class UserService {
 
     public Mono<User> createUser(User user) {
         log.debug("Sending request to Azure Function: {}", user);
-        return baseWebClient.post().uri("/createUserFunction")
+        return baseWebClient.post()
+                .uri("createUserFunction")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(user)
                 .retrieve()
@@ -75,9 +84,17 @@ public class UserService {
                                     log.error("Error calling Azure Function: {}", errorMessage);
                                     return Mono.error(new RuntimeException("Failed to create user: " + errorMessage));
                                 }))
-                .bodyToMono(User.class)
-                .doOnSuccess(createdUser -> log.info("User created successfully: {}", createdUser))
-                .doOnError(error -> log.error("Error creating user: {}", error.getMessage()));
+                .bodyToMono(JsonNode.class)
+                .map(json -> {
+                    log.info("Function response: {}", json.toPrettyString());
+                    ObjectMapper mapper = new ObjectMapper();
+                    JsonNode userNode = json.get("user");
+                    try {
+                        return mapper.treeToValue(userNode, User.class);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException("Failed to parse user from function response", e);
+                    }
+                });
     }
 
     public Mono<User> updateUser(UUID userId, User user) {
