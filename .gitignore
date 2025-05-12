@@ -52,5 +52,6 @@ Thumbs.db
 req.http
 
 wallet/
+http/
 
 queries.sql
